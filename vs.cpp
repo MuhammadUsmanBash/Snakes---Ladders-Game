@@ -1,0 +1,272 @@
+#include<iostream>
+#include<windows.h>
+#include<conio.h>
+#include<cmath>
+#include<cstdlib>
+#include<fstream>
+using namespace std;
+void sleep(float n)
+{
+    for (double i = 0; i <= n *(5* 99999100); i++)
+    {}
+}
+void gotoRowCol(int rpos, int cpos)
+{
+	int xpos=cpos, ypos = rpos;
+	COORD scrn;
+	HANDLE hOuput = GetStdHandle(STD_OUTPUT_HANDLE);
+	scrn.X = cpos;
+	scrn.Y = rpos;
+	SetConsoleCursorPosition(hOuput, scrn);
+}
+void single_box(char c, int sy, int sx, int width)
+{
+	int first_line_end,second_line_end,third_line_end;
+	for(int i = sx; i < sx+width-1; i++)
+	{
+		gotoRowCol(sy,i);
+		cout << (char)c;
+		first_line_end = i;
+	}
+	for(int j = sy; j < sy+width-1;j++)
+	{
+		gotoRowCol(j,first_line_end+1);
+		cout << (char)c;
+		second_line_end = j;
+	}
+	for(int k = first_line_end+1; k > sx; k--)
+	{
+		gotoRowCol(second_line_end+1,k);
+		cout << (char)c;
+		third_line_end = k;
+	}
+	for(int l = second_line_end+1; l > sy; l--)
+	{
+		gotoRowCol(l,third_line_end-1);
+		cout << (char)c;
+	}
+}
+void board(int char_value, int width)
+{
+	for(int y = 0; y <= 9*width; y+=width)
+	{
+		for(int x = 0; x <= 9*width; x+=width)
+		{
+			single_box(char_value,y,x,width);
+		}
+	}
+}
+void board_numbering(int width)
+{
+	int number = 100;
+	for(int y = (width/2)-1;y <= (9*width)+(width/2)-1; y+=width)
+	{
+		for(int x = (width/2)-1; x <= (9*width)+(width/2)-1; x+=width)
+		{
+			gotoRowCol(y,x);
+			cout << number;
+			number--;
+		}
+	}
+}
+void rolling_dice(int player_no,int py,int px,int y,int x,int &score)
+{
+	gotoRowCol(py,px);
+	cout << "Player " << player_no+1 << ": ";
+    int dice;
+    while(!kbhit())
+    {
+        dice=rand()%6 +1;
+        gotoRowCol(y,x);
+        cout<<dice << " ";
+    }
+    getch();
+    score=dice;
+}
+int player_turn(int & value)
+{
+	if(value == 0)
+	{
+		value = 1;
+	}
+	else
+	{
+		value = 0;
+	}
+}
+int ladders(int pos, int turn,int width)
+{
+	int a = 16,b = 37,c = 29,d = 78; 
+	gotoRowCol((width*5)-1,(width*13)-10);
+	if(pos == a)
+	{
+		cout << "Player " << turn+1 << " got ladder from " << a << " to " << b;
+		return b;
+	}
+	if(pos == c)
+	{
+		cout << "Player " << turn+1 << " got ladder from " << c << " to " << d;
+		return d;
+	}
+}
+int snakes(int  pos, int turn,int width)
+{
+	int a = 89,b = 46,c = 65,d = 22; 
+	gotoRowCol((width*5)-1,(width*13)-10);
+	if(pos == a)
+	{
+		cout << "Player " << turn+1 << " got snakes from " << a << " to " << b;
+		return b;
+	}
+	if(pos == c)
+	{
+		cout << "Player " << turn+1 << " got snakes from " << c << " to " << d;
+		return d;
+	}
+}
+void filling_y_pos_array1(int a[],int size,int width)
+{
+	int pos = 0;
+	for(int i = (width*9)+1;i >= 1;i-=width)
+	{
+		for(int j = 1;j <= 10; j+=1)
+		{
+			a[pos] = i;
+			pos++;
+		}
+	}
+}
+void filling_x_pos_array1(int a[],int size,int width)
+{
+	int pos = 0;
+	for(int i = 1;i <= 10;i+=1)
+	{
+		for(int j = (width*9)+1;j >= 1; j-=width)
+		{
+			a[pos] = j;
+			pos++;
+		}
+	}
+}
+void on_100_check(int on_board_pos, int & value,int & value_after_6)
+{
+	if(on_board_pos+value+value_after_6 > 100)
+	{
+		value = 0;
+		value_after_6 = 0;
+		
+	}
+}
+void printing_Snakes_and_ladders(int width)
+{
+	gotoRowCol((width*1)+0,(width*13)-10);cout <<"Ladders:";gotoRowCol((width*1)+1,(width*13)-10);cout <<"16 -------- 37";gotoRowCol((width*1)+2,(width*13)-10);cout <<"29 -------- 78";
+	gotoRowCol((width*1)+4,(width*13)-10);cout <<"Snakes:";gotoRowCol((width*1)+5,(width*13)-10);cout <<"65 -------- 22";gotoRowCol((width*1)+6,(width*13)-10);cout <<"89 -------- 46";
+}
+void player_on_board_pos(int on_board_pos[],int width)
+{
+	gotoRowCol(0+((width*4)+1)+6,(width*13)-10);cout << "Player 1 is on: " <<  on_board_pos[0];gotoRowCol(0+((width*4)+1)+8,(width*13)-10);cout << "Player 2 is on: " <<  on_board_pos[1];
+}
+void save_game(int current_player_turn,int on_board_pos[],bool player_check[])
+{
+	int size = 2;
+	ofstream file("Saved_game.txt");
+	file << current_player_turn << endl;
+	for(int i= 0; i < size; i++)
+	{
+		file << on_board_pos[i] << " ";
+		file << player_check[i] << " ";
+	}
+	file.close();
+}
+void load_game(int & current_player_turn,int on_board_pos[],bool player_check[])
+{
+	char load;
+	cout << "Do you want to load game, Give character 'y' OR 'Y' for 'yes', nad give any other character to start new:";
+	cin >> load;
+	if(load == 'y' || load == 'Y')
+	{
+		int size = 2;
+		ifstream file("Saved_game.txt");
+		file >> current_player_turn;
+		cout << endl;
+		for(int i= 0; i < size; i++)
+		{
+			file >> on_board_pos[i];cout << " ";
+			file >> player_check[i];cout << " ";
+		}
+		file.close();
+	}
+}
+int main()
+{
+	int character_value = 219,width,size = 100,dusri_y,dusri_x;
+	cout << "Give Size of one box on board between 6 to 12, everything will adjust according to it: ";
+	cin >> width;
+	int current_player_turn = 0;
+	int on_board_pos[2] = {0,0};
+	bool player_check[2] = {true,true};
+	load_game(current_player_turn,on_board_pos,player_check);
+	system("CLS");
+	int value[2] = {0,0};
+	int value_after_6[2] = {0,0};
+	char p_symbol[2] = {'1','2'};
+	board(character_value,width);
+	board_numbering(width);
+	printing_Snakes_and_ladders(width);
+	player_on_board_pos(on_board_pos,width);
+	int y_pos_array1[size];
+	int x_pos_array1[size];
+	filling_y_pos_array1(y_pos_array1,size,width);
+	filling_x_pos_array1(x_pos_array1,size,width);
+	do
+	{
+	save_game(current_player_turn,on_board_pos,player_check);
+	if(current_player_turn == 1){dusri_y = width/2;dusri_x = width/2;}else{dusri_y  = 0;dusri_x = 0;}
+	if(player_check[current_player_turn])
+	{
+		rolling_dice(current_player_turn,(width*4)+1,(width*13)-10,(width*4)+1,width*13,value[current_player_turn]);
+		gotoRowCol(0+((width*4)+1)+2,(width*13)-10);
+		cout << "Player " << current_player_turn+1 << ": " << value[current_player_turn];
+		player_on_board_pos(on_board_pos,width);
+		if(value[current_player_turn] == 6)
+		{
+			player_check[current_player_turn] = false;
+		}		
+	}
+	if(player_check[current_player_turn] == false)
+	{
+		rolling_dice(current_player_turn,(width*4)+1,(width*13)-10,(width*4)+1,width*13,value[current_player_turn]);
+		gotoRowCol(0+((width*4)+1)+2,(width*13)-10);
+		cout << "Player " << current_player_turn+1 << ": " << value[current_player_turn];
+		if(value[current_player_turn] == 6)
+		{
+			rolling_dice(current_player_turn,(width*4)+1,(width*13)-10,(width*4)+1,width*13,value_after_6[current_player_turn]);
+			gotoRowCol(0+((width*4)+1)+2,(width*13)-10);
+			cout << "Player " << current_player_turn+1 << ": " << value_after_6[current_player_turn];
+		}
+		else
+		{
+			value_after_6[current_player_turn] = 0;
+		}
+		gotoRowCol(y_pos_array1[on_board_pos[current_player_turn]-1]+dusri_y,x_pos_array1[on_board_pos[current_player_turn]-1]+dusri_x);
+		cout << ' ';
+		on_100_check(on_board_pos[current_player_turn],value[current_player_turn],value_after_6[current_player_turn]);
+		on_board_pos[current_player_turn] += value[current_player_turn];
+		on_board_pos[current_player_turn] += value_after_6[current_player_turn];
+		on_board_pos[current_player_turn] = ladders(on_board_pos[current_player_turn],current_player_turn,width);
+		on_board_pos[current_player_turn] = snakes(on_board_pos[current_player_turn],current_player_turn,width);
+		player_on_board_pos(on_board_pos,width);
+		gotoRowCol(y_pos_array1[on_board_pos[current_player_turn]-1]+dusri_y,x_pos_array1[on_board_pos[current_player_turn]-1]+dusri_x);
+		cout << p_symbol[current_player_turn];
+	}
+	if(on_board_pos[current_player_turn] >= 100)
+	{
+		gotoRowCol(0+((width*4)+1)+10,(width*13)-10);
+		cout << "Player " << current_player_turn+1 << " is winner.";
+		save_game(current_player_turn,on_board_pos,player_check);
+		break;
+	}
+	player_turn(current_player_turn);
+	}while(on_board_pos[current_player_turn] != 100);
+	getch();
+}
